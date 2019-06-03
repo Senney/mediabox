@@ -1,18 +1,28 @@
 version: '3'
 services:
-  hub:
-    build: ../hub
+  nzbget:
+    image: 'linuxserver/nzbget'
+    volumes:
+      - /srv/mediabox/nzbget:/config
+      - /media/data/public/downloads:/downloads
+      - /media/data/public/incomplete:/intermediate
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Edmonton
     ports:
-      - 80:80
+      - 6789:6789
   sabnzbd:
     image: 'linuxserver/sabnzbd'
     ports:
       - 8080:8080
       - 9090:9090
     volumes:
-      - /data/public/config/sabnzbd:/config
-      - /data/public/downloads:/downloads
-      - /data/public/incomplete:/incomplete-downloads
+      - /srv/mediabox/sabnzbd:/config
+      - /media/data/public/downloads:/downloads
+      - /media/data/public/incomplete:/incomplete-downloads
+      - /srv/certs/fullchain.pem:/config/admin/server.crt
+      - /srv/certs/privkey.pem:/config/admin/server.key
     environment:
       PGID: 1000
       PUID: 1000
@@ -23,9 +33,9 @@ services:
       - 8989:8989
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /data/public/config/sonarr:/config
-      - /data/public/media/tv:/tv
-      - /data/public/downloads:/downloads
+      - /srv/mediabox/sonarr:/config
+      - /media/data/public/media/tv:/tv
+      - /media/data/public/downloads:/downloads
     environment:
       PGID: 1000
       PUID: 1000
@@ -34,21 +44,22 @@ services:
     image: 'linuxserver/plex'
     network_mode: "host"
     volumes:
-      - /data/public/config/plex:/config
-      - /data/public/media:/data/media
+      - /srv/mediabox/plex:/config
+      - /media/data/public/media:/data/media
     environment:
       VERSION: latest 
       PGID: 1000
       PUID: 1000
       TZ: America/Edmonton
-  couchpotato:
-    image: 'linuxserver/couchpotato'
+  radarr:
+    image: 'linuxserver/radarr'
     ports:
-      - 5050:5050
+      - 7878:7878
     volumes:
-      - /data/public/config/couchpotato:/config
-      - /data/public/downloads:/downloads
-      - /data/public/media/movies:/movies
+      - /srv/mediabox/radarr:/config
+      - /media/data/public/downloads:/downloads
+      - /media/data/public/media/movies:/movies
+      - /etc/localtime:/etc/localtime:ro
     environment:
       PGID: 1000
       PUID: 1000
@@ -61,8 +72,30 @@ services:
       - 51413:51413
       - 6881:6881/udp
     volumes:
-      - /data/public/config/rutorrent:/config
-      - /data/public/downloads:/downloads
+      - /srv/mediabox/rutorrent:/config
+      - /media/data/public/downloads:/downloads
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Edmonton
+  mylar:
+    image: 'linuxserver/mylar'
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - /srv/mediabox/mylar:/config
+      - /media/data/public/media/comics:/comics
+      - /media/data/public/downloads:/downloads
+    ports:
+      - 8090:8090
+    restart: unless-stopped
+  organizr:
+    image: lsiocommunity/organizr
+    ports:
+      - 80:80
+    volumes:
+      - /srv/mediabox/organizr:/config
     environment:
       PGID: 1000
       PUID: 1000
