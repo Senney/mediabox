@@ -90,6 +90,14 @@ services:
     ports:
       - 8090:8090
     restart: unless-stopped
+  portainer:
+    image: portainer/portainer
+    ports:
+      - 9000:9000
+      - 8000:8000
+    volumes:
+      - /srv/mediabox/portainer:/datra
+      - /var/run/docker.sock:/var/run/docker.sock
   organizr:
     image: lsiocommunity/organizr
     ports:
